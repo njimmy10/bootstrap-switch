@@ -1,32 +1,54 @@
-import { Component, Prop, h } from '@stencil/core';
-import { format } from '../../utils/utils';
+import { Component, h, Prop, Event, EventEmitter } from '@stencil/core';
+import { v4 as uuidv4 } from 'uuid';
+import 'jquery';
+import 'bootstrap-switch';
+import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';
+import $ from 'jquery';
+import '../../jquery-extensions';
 
 @Component({
-  tag: 'my-component',
-  styleUrl: 'my-component.css',
-  shadow: true,
+  tag: 'ir-switch',
+  styleUrl: 'ir-switch.css',
 })
 export class MyComponent {
-  /**
-   * The first name
-   */
-  @Prop() first: string;
 
-  /**
-   * The middle name
-   */
-  @Prop() middle: string;
+  @Prop({ mutable: true }) value: boolean = false;
+  @Event() valueChange: EventEmitter<boolean>;
 
-  /**
-   * The last name
-   */
-  @Prop() last: string;
+  componentId: string = uuidv4();
 
-  private getText(): string {
-    return format(this.first, this.middle, this.last);
+  componentDidLoad() {
+    // Check if jQuery is working
+    const testElement = $(`#${this.componentId}`);
+    if (testElement.length) {
+      console.log('jQuery is working!');
+      // Initialize Bootstrap Switch
+      testElement.bootstrapSwitch();
+
+      // Add event listener for switch change
+      testElement.on('switchChange.bootstrapSwitch', (event, state) => {
+        // state will be true if the switch is ON, and false if it's OFF
+        console.log('Switch state:', state);
+        console.log(event);
+        // Call your custom callback function here if needed
+        this.onSwitchChangeCallback(state);
+      });
+    } else {
+      console.error('jQuery is not working!');
+    }
+  }
+
+  onSwitchChangeCallback(state: boolean) {
+    this.value = state;
+    this.valueChange.emit(this.value);
   }
 
   render() {
-    return <div>Hello, World! I'm {this.getText()}</div>;
+    return (
+     <input
+      type="checkbox"
+      id={this.componentId}
+      checked={this.value} />
+    )
   }
 }
